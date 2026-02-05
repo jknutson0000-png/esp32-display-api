@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Display Control Panel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); overflow: hidden; }
+    header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; }
+    header h1 { font-size: 2em; margin-bottom: 10px; }
+    header .subtitle { opacity: 0.9; font-size: 0.95em; }
+    main { padding: 30px; }
+    section { margin-bottom: 30px; }
+    h2 { color: #667eea; font-size: 1.3em; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+    .control-section { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .form-group { display: flex; align-items: center; margin-bottom: 15px; gap: 10px; }
+    label { min-width: 140px; font-weight: 600; color: #555; }
+    input[type="text"], select { flex: 1; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 1em; transition: border-color 0.3s; }
+    input[type="text"]:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    .button-group { display: flex; gap: 10px; margin-bottom: 30px; }
+    .btn { flex: 1; padding: 12px 24px; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+    .status-section { background: #f0f4ff; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
+    .status-display { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+    .status-item { background: white; padding: 15px; border-radius: 6px; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .status-item .label { display: block; color: #999; font-size: 0.9em; margin-bottom: 8px; font-weight: 500; }
+    .status-item .value { display: block; color: #667eea; font-size: 1.4em; font-weight: 700; font-family: 'Courier New', monospace; }
+    .message { margin-top: 20px; padding: 12px 16px; border-radius: 6px; text-align: center; min-height: 20px; font-weight: 500; }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ESP32 Display Control</h1>
+      <p class="subtitle">Real-time data management for your display</p>
+    </header>
+    
+    <main>
+      <section class="control-section">
+        <h2>Temperature Sensors</h2>
+        <div class="form-group"><label for="temp1">Temperature 1:</label><input type="text" id="temp1" placeholder="e.g., 425" maxlength="4"></div>
+        <div class="form-group"><label for="temp2">Temperature 2:</label><input type="text" id="temp2" placeholder="e.g., 380" maxlength="4"></div>
+      </section>
+      
+      <section class="control-section">
+        <h2>Status & Custom</h2>
+        <div class="form-group"><label for="status">Status:</label><select id="status"><option value="RUNNING">RUNNING</option><option value="STOPPED">STOPPED</option><option value="ERROR">ERROR</option><option value="IDLE">IDLE</option></select></div>
+        <div class="form-group"><label for="custom">Custom Value:</label><input type="text" id="custom" placeholder="e.g., 000" maxlength="3"></div>
+      </section>
+      
+      <div class="button-group">
+        <button class="btn btn-primary" id="saveBtn">Save & Update</button>
+        <button class="btn btn-primary" id="refreshBtn" style="background: #999;">Refresh</button>
+      </div>
+      
+      <section class="status-section">
+        <h2>Current Values</h2>
+        <div class="status-display">
+          <div class="status-item"><span class="label">Temp1:</span><span class="value" id="displayTemp1">--</span></div>
+          <div class="status-item"><span class="label">Temp2:</span><span class="value" id="displayTemp2">--</span></div>
+          <div class="status-item"><span class="label">Status:</span><span class="value" id="displayStatus">--</span></div>
+          <div class="status-item"><span class="label">Custom:</span><span class="value" id="displayCustom">--</span></div>
+        </div>
+      </section>
+      
+      <div id="message" class="message"></div>
+    </main>
+  </div>
+  
+  <script>
+    const API_URL = window.location.origin + '/api/esp32-data';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      loadCurrentData();
+      document.getElementById('saveBtn').addEventListener('click', saveData);
+      document.getElementById('refreshBtn').addEventListener('click', loadCurrentData);
+    });
+    
+    function loadCurrentData() {
+      fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('temp1').value = data.temp1;
+          document.getElementById('temp2').value = data.temp2;
+          document.getElementById('status').value = data.status;
+          document.getElementById('custom').value = data.custom;
+          updateDisplay(data);
+          showMessage('Data loaded', 'success');
+        })
+        .catch(error => showMessage('Error loading data: ' + error, 'error'));
+    }
+    
+    function saveData() {
+      const data = {
+        temp1: document.getElementById('temp1').value,
+        temp2: document.getElementById('temp2').value,
+        status: document.getElementById('status').value,
+        custom: document.getElementById('custom').value
+      };
+      
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          updateDisplay(result.data);
+          showMessage('Data saved successfully!', 'success');
+        } else {
+          showMessage('Error: ' + result.error, 'error');
+        }
+      })
+      .catch(error => showMessage('Error saving data: ' + error, 'error'));
+    }
+    
+    function updateDisplay(data) {
+      document.getElementById('displayTemp1').textContent = data.temp1;
+      document.getElementById('displayTemp2').textContent = data.temp2;
+      document.getElementById('displayStatus').textContent = data.status;
+      document.getElementById('displayCustom').textContent = data.custom;
+    }
+    
+    function showMessage(msg, type) {
+      const msgEl = document.getElementById('message');
+      msgEl.textContent = msg;
+      msgEl.className = 'message ' + type;
+      setTimeout(() => msgEl.textContent = '', 4000);
+    }
+  </script>
+</body>
+</html>

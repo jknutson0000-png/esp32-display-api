@@ -1,0 +1,25 @@
+name: PwnDeck build
+on:
+  push:
+    paths: ['firmware/pwndeck/**', '.github/workflows/pwndeck-build.yml']
+  pull_request:
+    paths: ['firmware/pwndeck/**', '.github/workflows/pwndeck-build.yml']
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash firmware/pwndeck/scripts/verify.sh
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [cyd, devkit, cam]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -q platformio
+      - run: pio run -e ${{ matrix.env }} -d firmware/pwndeck

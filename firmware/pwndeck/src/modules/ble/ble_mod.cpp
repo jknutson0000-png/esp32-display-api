@@ -9,9 +9,9 @@ void ble_scan(void) {
   BLEDevice::init("");
   BLEScan *s = BLEDevice::getScan();
   s->setActiveScan(true);
-  BLEScanResults *r = s->start(10, false);
-  for (int i = 0; i < r->getCount(); i++) {
-    auto d = r->getDevice(i);
+  BLEScanResults r = s->start(10, false);
+  for (int i = 0; i < r.getCount(); i++) {
+    BLEAdvertisedDevice d = r.getDevice(i);
     Serial.printf("  %s rssi=%d name=%s\n",
                   d.getAddress().toString().c_str(), d.getRSSI(),
                   d.getName().c_str());

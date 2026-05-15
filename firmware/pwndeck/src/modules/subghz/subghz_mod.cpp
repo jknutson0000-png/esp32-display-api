@@ -1,8 +1,15 @@
+// Sub-GHz radio module. Only built with a CC1101 wired up — that means
+// the CYD and DevKit targets. The ESP32-CAM target gets stubs because
+// the camera consumes all the SPI-capable pins.
+
 #include <Arduino.h>
-#include <SPI.h>
-#include <ELECHOUSE_CC1101_SRC_DRV.h>
 #include "../../menu/registry.h"
 #include "../../../include/pins.h"
+
+#if defined(PWNDECK_TARGET_CYD) || defined(PWNDECK_TARGET_DEVKIT)
+
+#include <SPI.h>
+#include <ELECHOUSE_CC1101_SRC_DRV.h>
 
 static bool g_cc_ready = false;
 
@@ -40,3 +47,12 @@ void subghz_capture(void) {
 
 void subghz_replay(void)     { Serial.println("[subghz.replay] stub — needs capture-file format"); }
 void subghz_jam_detect(void) { Serial.println("[subghz.jam_detect] stub — long-RSSI heuristic"); }
+
+#else  // CAM target: no CC1101 wiring possible.
+
+void subghz_scan(void)       { Serial.println("[subghz] CC1101 unavailable on this target"); }
+void subghz_capture(void)    { Serial.println("[subghz] CC1101 unavailable on this target"); }
+void subghz_replay(void)     { Serial.println("[subghz] CC1101 unavailable on this target"); }
+void subghz_jam_detect(void) { Serial.println("[subghz] CC1101 unavailable on this target"); }
+
+#endif

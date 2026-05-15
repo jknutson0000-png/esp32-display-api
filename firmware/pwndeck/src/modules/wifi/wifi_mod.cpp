@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <esp_wifi.h>
 #include "../../menu/registry.h"
 
 static void log_line(const char *s) { Serial.println(s); }

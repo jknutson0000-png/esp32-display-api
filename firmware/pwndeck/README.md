@@ -27,6 +27,25 @@ project's `Esp32` Drive folder.
 - **Single menu registry** — every action declared once in
   `src/menu/registry.cpp`; `scripts/verify.sh` enforces a handler exists.
 
+## Camera (local access)
+
+Two menu actions expose the ESP32-CAM live over your LAN:
+
+| Menu id           | What it does                                                       |
+| ----------------- | ------------------------------------------------------------------ |
+| `cam.ap_stream`   | Cam hosts its own AP `PwnDeck-CAM` / pwd `pwndeck123`. Connect, browse `http://192.168.4.1/`. |
+| `cam.lan_stream`  | Cam joins your home Wi-Fi. Build with `-DPWNDECK_WIFI_SSID=\"x\" -DPWNDECK_WIFI_PASS=\"y\"`. IP printed to serial. |
+| `cam.snapshot`    | One JPEG dumped to the serial console (between `BEGIN_JPEG`/`END_JPEG` markers).             |
+
+The HTTP server exposes:
+
+- `GET /`        — single-page HTML viewer
+- `GET /stream`  — MJPEG `multipart/x-mixed-replace`
+- `GET /jpg`     — one-shot JPEG snapshot
+
+Press `q` on the PwnDeck serial console to stop the camera server and
+return to the menu.
+
 ## Build
 
 ```

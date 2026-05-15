@@ -20,6 +20,7 @@ required=(
   src/modules/ble/ble_mod.cpp
   src/modules/subghz/subghz_mod.cpp
   src/modules/system/system_mod.cpp
+  src/modules/camera/camera_mod.cpp
 )
 for f in "${required[@]}"; do
   if [[ -f "$f" ]]; then say "exists $f" OK; else say "exists $f" MISSING; fail=1; fi

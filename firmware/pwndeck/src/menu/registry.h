@@ -31,6 +31,9 @@ void system_panic_wipe(void);
 void system_wiring_wizard(void);
 void system_region_gate(void);
 void system_about(void);
+void cam_ap_stream(void);
+void cam_lan_stream(void);
+void cam_snapshot_serial(void);
 
 extern const MenuEntry kMenu[];
 extern const size_t kMenuCount;

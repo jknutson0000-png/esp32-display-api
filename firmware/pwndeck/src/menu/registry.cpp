@@ -16,5 +16,8 @@ const MenuEntry kMenu[] = {
   {"system.wizard",      "System: Wiring Wizard",   "system", system_wiring_wizard},
   {"system.region",      "System: Region Gate",     "system", system_region_gate},
   {"system.about",       "System: About",           "system", system_about},
+  {"cam.ap_stream",      "Cam: AP + Live View",     "camera", cam_ap_stream},
+  {"cam.lan_stream",     "Cam: Join LAN + Stream",  "camera", cam_lan_stream},
+  {"cam.snapshot",       "Cam: Snapshot Serial",    "camera", cam_snapshot_serial},
 };
 const size_t kMenuCount = sizeof(kMenu) / sizeof(kMenu[0]);
